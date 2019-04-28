@@ -1,0 +1,116 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Assets">
+      <UniqueIdentifier>7b157b2a-1a0f-4315-b758-05896a2612af</UniqueIdentifier>
+      <Extensions>ico;cur;bmp;dds;dlg;fbx;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tga;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Framework Header">
+      <UniqueIdentifier>{6030d6b9-9150-49e4-8b76-e54591c106da}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Framework Source">
+      <UniqueIdentifier>{a8cab200-f929-4f63-8ab3-52da7fbc3156}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header">
+      <UniqueIdentifier>{27b9e143-d145-4e1f-916c-c2d2bef54917}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source">
+      <UniqueIdentifier>{df9245dd-266d-442c-bb89-1d967a662857}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource">
+      <UniqueIdentifier>{e799fb3f-509c-42bb-a6cc-5b2c1a9010d3}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Game.h">
+      <Filter>Framework Header</Filter>
+    </ClInclude>
+    <ClInclude Include="Window.h">
+      <Filter>Framework Header</Filter>
+    </ClInclude>
+    <ClInclude Include="MyGame.h">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="StepTimer.h">
+      <Filter>Framework Header</Filter>
+    </ClInclude>
+    <ClInclude Include="NonCopyable.h">
+      <Filter>Framework Header</Filter>
+    </ClInclude>
+    <ClInclude Include="DirectX11.h">
+      <Filter>Framework Header</Filter>
+    </ClInclude>
+    <ClInclude Include="pch.h">
+      <Filter>Framework Header</Filter>
+    </ClInclude>
+    <ClInclude Include="GridFloor.h">
+      <Filter>Framework Header</Filter>
+    </ClInclude>
+    <ClInclude Include="DebugCamera.h">
+      <Filter>Framework Header</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Game.cpp">
+      <Filter>Framework Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Main.cpp">
+      <Filter>Framework Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Window.cpp">
+      <Filter>Framework Source</Filter>
+    </ClCompile>
+    <ClCompile Include="MyGame.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="DirectX11.cpp">
+      <Filter>Framework Source</Filter>
+    </ClCompile>
+    <ClCompile Include="DebugCamera.cpp">
+      <Filter>Framework Source</Filter>
+    </ClCompile>
+    <ClCompile Include="GridFloor.cpp">
+      <Filter>Framework Source</Filter>
+    </ClCompile>
+    <ClCompile Include="pch.cpp">
+      <Filter>Framework Source</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="directx.ico">
+      <Filter>Assets</Filter>
+    </Image>
+    <Image Include="Resources\texture\CorkBoard01.png">
+      <Filter>Assets</Filter>
+    </Image>
+    <Image Include="Resources\texture\grass.png">
+      <Filter>Assets</Filter>
+    </Image>
+    <Image Include="Resources\texture\pattern.png">
+      <Filter>Assets</Filter>
+    </Image>
+    <Image Include="Resources\texture\concrete.png">
+      <Filter>Assets</Filter>
+    </Image>
+    <Image Include="Resources\texture\substance.png">
+      <Filter>Assets</Filter>
+    </Image>
+    <Image Include="Resources\texture\water.png">
+      <Filter>Assets</Filter>
+    </Image>
+    <Image Include="Resources\texture\grey.png">
+      <Filter>Assets</Filter>
+    </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="resource.rc">
+      <Filter>Resource</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="astar.csv">
+      <Filter>Assets</Filter>
+    </None>
+    <None Include="ClassDiagram.cd" />
+  </ItemGroup>
+</Project>
