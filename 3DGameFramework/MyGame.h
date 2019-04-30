@@ -6,6 +6,7 @@
 #include "Game.h"
 #include "DebugCamera.h"
 #include "GridFloor.h"
+#include <fbxsdk.h>
 
 class MyGame : public Game 
 {
@@ -18,6 +19,9 @@ public:
 	void CreateResources() override;
 	// ゲームを更新する
 	void Update(const DX::StepTimer& timer) override;
+	void DisplayMesh(FbxNode* node);
+	void DisplayContent(FbxScene* scene, FbxNode* node);
+	void DisplayContent(FbxScene* scene);
 	// ゲームを描画する
 	void Render(const DX::StepTimer& timer) override;
 	// 終了処理をおこなう
@@ -38,6 +42,8 @@ private:
 	// 射影行列
 	DirectX::SimpleMath::Matrix m_projection;
 
+	// プリミティブバッチ
+	std::unique_ptr<DirectX::PrimitiveBatch<DirectX::VertexPositionColor>> m_primitiveBatch;
 	// スプライトバッチ
 	DirectX::SpriteBatch* m_spriteBatch;
 	// エフェクトファクトリインターフェース(m_fxFactory)
@@ -57,6 +63,8 @@ private:
 	// コモンステート
 	std::unique_ptr<DirectX::CommonStates> m_states;
 
+	// FBXシーン
+	FbxScene* m_fbxmodel;
 };
 
 #endif	// MYGAME_DEFINED

@@ -2,6 +2,9 @@
 
 #include "MyGame.h"
 
+using namespace DirectX;
+using namespace DirectX::SimpleMath;
+
 // コンストラクタ
 MyGame::MyGame(int width, int height) : m_width(width), m_height(height), Game(width, height)
 {
@@ -22,6 +25,27 @@ void MyGame::Initialize(int width, int height)
 
 	m_world = DirectX::SimpleMath::Matrix::Identity;
 
+	//FbxManagerとFbxSceneオブジェクトを作成
+	FbxManager* manager = FbxManager::Create();
+	FbxIOSettings* ios = FbxIOSettings::Create(manager, IOSROOT);
+	manager->SetIOSettings(ios);
+	FbxScene* scene = FbxScene::Create(manager, "");
+
+	//データをインポート
+	const char* filename = "star2.FBX";
+	FbxImporter* importer = FbxImporter::Create(manager, "");
+	importer->Initialize(filename, -1, manager->GetIOSettings());
+	importer->Import(scene);
+	importer->Destroy();
+
+	//三角ポリゴン化
+	FbxGeometryConverter geometryConverter(manager);
+	geometryConverter.Triangulate(scene, true);
+
+	m_primitiveBatch = std::make_unique<DirectX::PrimitiveBatch<DirectX::VertexPositionColor>>(m_directX.GetContext().Get());
+
+	m_fbxmodel = scene;
+
 	// デバッグカメラを生成する
 	m_debugCamera = std::make_unique<DebugCamera>(width, height);
 }
@@ -38,7 +62,7 @@ void MyGame::CreateResources()
 		DirectX::SimpleMath::Vector3::Zero, DirectX::SimpleMath::Vector3::Up);
 	// 射影座標変換行列を生成する
 	m_projection = DirectX::SimpleMath::Matrix::CreatePerspectiveFieldOfView(DirectX::XM_PI / 4.0f,
-		float(m_width) / float(m_height), 0.1f, 10.0f);
+		float(m_width) / float(m_height), 0.1f, 100.0f);
 	// エフェクトを更新する
 	m_model->UpdateEffects([](DirectX::IEffect* effect)
 		{
@@ -58,8 +82,8 @@ void MyGame::CreateResources()
 			{
 				fog->SetFogEnabled(true);
 				fog->SetFogColor(DirectX::Colors::CornflowerBlue);
-				fog->SetFogStart(8.f);
-				fog->SetFogEnd(10.f);
+				fog->SetFogStart(50.f);
+				fog->SetFogEnd(60.f);
 			}
 		});
 
@@ -78,6 +102,112 @@ void MyGame::Update(const DX::StepTimer& timer)
 
 	// デバッグカメラを更新する
 	m_debugCamera->Update();
+}
+
+void DisplayPosition(FbxMesh* mesh)
+{
+	int positionNum = mesh->GetControlPointsCount();	// 頂点数
+	FbxVector4* position = mesh->GetControlPoints();	// 頂点座標配列
+
+	for (int i = 0; i < positionNum; ++i)
+	{
+		std::cout << "position[" << i << "] : ("
+			<< position[i][0] << ","
+			<< position[i][1] << ","
+			<< position[i][2] << ","
+			<< position[i][3] << ")" << std::endl;
+	}
+}
+
+void DisplayIndex(FbxMesh* mesh)
+{
+	//総ポリゴン数
+	int polygonNum = mesh->GetPolygonCount();
+
+	//p個目のポリゴンへの処理
+	for (int p = 0; p < polygonNum; ++p)
+	{
+		//p個目のポリゴンのn個目の頂点への処理
+		for (int n = 0; n < 3; ++n)
+		{
+			int index = mesh->GetPolygonVertex(p, n);
+			std::cout << "index[" << p + n << "] : " << index << std::endl;
+		}
+	}
+}
+
+void MyGame::DisplayMesh(FbxNode* node)
+{
+	FbxMesh* mesh = (FbxMesh*)node->GetNodeAttribute();
+
+	//std::cout << "\n\nMesh Name: " << (char*)node->GetName() << std::endl;
+
+	//DisplayIndex(mesh);
+	//DisplayPosition(mesh);
+
+	m_spriteBatch;
+}
+
+void MyGame::DisplayContent(FbxScene* scene, FbxNode* node)
+{
+	FbxNodeAttribute::EType lAttributeType;
+
+	if (node->GetNodeAttribute() == NULL)
+	{
+		//std::cout << "NULL Node Attribute\n\n";
+	}
+	else
+	{
+		lAttributeType = (node->GetNodeAttribute()->GetAttributeType());
+
+		switch (lAttributeType)
+		{
+		default:
+			break;
+
+		case FbxNodeAttribute::eMesh:
+
+			FbxMesh* mesh = (FbxMesh*)node->GetNodeAttribute();
+
+			//std::cout << "\n\nMesh Name: " << (char*)node->GetName() << std::endl;
+
+			//DisplayIndex(mesh);
+			//DisplayPosition(mesh);
+
+			//m_spriteBatch->Draw(scene->GetTexture(,), mesh.getTex);
+			int vertexCount = mesh->GetControlPointsCount();
+			auto vertices = new VertexPositionColor[vertexCount];
+			for (int i = 0; i < mesh->GetControlPointsCount(); i++) {
+				auto point = mesh->GetControlPointAt(i);
+				//auto color = mesh->coloGetElementVertexColor(i);
+				vertices[i] = VertexPositionColor(Vector3((float)point[0], (float)point[1], (float)point[2]), Colors::White);
+			}
+
+			m_primitiveBatch->DrawIndexed(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST, (uint16_t*) mesh->GetPolygonVertices(), mesh->GetPolygonCount(), vertices, vertexCount);
+			delete vertices;
+
+			break;
+		}
+	}
+
+
+	for (int i = 0; i < node->GetChildCount(); i++)
+	{
+		DisplayContent(scene, node->GetChild(i));
+	}
+}
+
+void MyGame::DisplayContent(FbxScene* scene)
+{
+	FbxNode* node = scene->GetRootNode();
+
+	if (node)
+	{
+		for (int i = 0; i < node->GetChildCount(); i++)
+		{
+			DisplayContent(scene, node->GetChild(i));
+		}
+	}
 }
 
 // ゲームを描画する
@@ -109,8 +239,31 @@ void MyGame::Render(const DX::StepTimer& timer)
 	// モデルを描画する
 	m_model->Draw(m_directX.GetContext().Get(), *m_commonStates, m_world, m_view, m_projection);
 
+	//for (auto& mesh : m_model->meshes)
+	//{
+	//	int i = 0;
+	//	//mesh->Draw(m_directX.GetContext().Get(), m_world, m_view, m_projection);
+	//	for (auto& part : mesh->meshParts)
+	//	{
+	//		if (true)
+	//		{
+	//			auto effect = std::dynamic_pointer_cast<DirectX::BasicEffect>(part->effect);
+	//			effect->SetWorld(m_world);
+	//			effect->SetView(m_view);
+	//			effect->SetProjection(m_projection);
+	//			part->Draw(m_directX.GetContext().Get(), part->effect.get(), part->inputLayout.Get());
+	//		}
+	//		i++;
+	//	}
+	//}
+
 	// スプライトバッチを終了する
 	GetSpriteBatch()->End();
+
+	m_primitiveBatch->Begin();
+	DisplayContent(m_fbxmodel);
+	m_primitiveBatch->End();
+
 	// バックバッファを表示する
 	Present();
 }
