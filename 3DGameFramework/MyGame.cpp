@@ -2,6 +2,7 @@
 
 #include "MyGame.h"
 
+using namespace Microsoft::WRL;
 using namespace DirectX;
 using namespace DirectX::SimpleMath;
 
@@ -237,7 +238,114 @@ void MyGame::Render(const DX::StepTimer& timer)
 	// FPS‚ð•`‰æ‚·‚é
 	DrawFPS(timer);
 	// ƒ‚ƒfƒ‹‚ð•`‰æ‚·‚é
-	m_model->Draw(m_directX.GetContext().Get(), *m_commonStates, m_world, m_view, m_projection);
+	//m_model->Draw(m_directX.GetContext().Get(), *m_commonStates, m_world, m_view, m_projection);
+
+	{
+		auto deviceContext = m_directX.GetContext().Get();
+		auto& meshes = m_model->meshes;
+		auto& states = *m_commonStates;
+		bool wireframe = false;
+		auto& world = m_world;
+		auto& view = m_view;
+		auto& projection = m_projection;
+		std::function<void __cdecl()> setCustomState = nullptr;
+
+		// Draw opaque parts
+		for (auto it = meshes.cbegin(); it != meshes.cend(); ++it)
+		{
+			auto mesh = it->get();
+			assert(mesh != nullptr);
+
+			mesh->PrepareForRendering(deviceContext, states, false, wireframe);
+
+			//mesh->Draw(deviceContext, world, view, projection, false, setCustomState);
+			{
+				auto& meshParts = mesh->meshParts;
+				bool alpha = false;
+
+				for (auto it = meshParts.cbegin(); it != meshParts.cend(); ++it)
+				{
+					auto part = (*it).get();
+					assert(part != nullptr);
+
+					if (part->isAlpha != alpha)
+					{
+						// Skip alpha parts when drawing opaque or skip opaque parts if drawing alpha
+						continue;
+					}
+
+					auto imatrices = dynamic_cast<IEffectMatrices*>(part->effect.get());
+					if (imatrices)
+					{
+						imatrices->SetMatrices(world, view, projection);
+					}
+
+					//part->Draw(deviceContext, part->effect.get(), part->inputLayout.Get(), setCustomState);
+					{
+						auto iinputLayout = part->inputLayout.Get();
+						auto& vertexBuffer = part->vertexBuffer;
+						auto& vertexStride = part->vertexStride;
+						auto& indexBuffer = part->indexBuffer;
+						auto& indexFormat = part->indexFormat;
+						auto ieffect = part->effect.get();
+						auto& primitiveType = part->primitiveType;
+						auto& indexCount = part->indexCount;
+						auto& startIndex = part->startIndex;
+						auto& vertexOffset = part->vertexOffset;
+
+						deviceContext->IASetInputLayout(iinputLayout);
+
+						auto vb = vertexBuffer.Get();
+						UINT vbStride = vertexStride;
+						UINT vbOffset = 0;
+						deviceContext->IASetVertexBuffers(0, 1, &vb, &vbStride, &vbOffset);
+
+						// Note that if indexFormat is DXGI_FORMAT_R32_UINT, this model mesh part requires a Feature Level 9.2 or greater device
+						deviceContext->IASetIndexBuffer(indexBuffer.Get(), indexFormat, 0);
+
+						assert(ieffect != nullptr);
+						ieffect->Apply(deviceContext);
+
+						// Hook lets the caller replace our shaders or state settings with whatever else they see fit.
+						if (setCustomState)
+						{
+							setCustomState();
+						}
+
+						// Draw the primitive.
+						deviceContext->IASetPrimitiveTopology(primitiveType);
+
+						deviceContext->DrawIndexed(indexCount, startIndex, vertexOffset);
+					}
+				}
+			}
+		}
+
+		// Draw alpha parts
+		/*
+		for (auto it = meshes.cbegin(); it != meshes.cend(); ++it)
+		{
+			auto mesh = it->get();
+			assert(mesh != nullptr);
+
+			mesh->PrepareForRendering(deviceContext, states, true, wireframe);
+
+			mesh->Draw(deviceContext, world, view, projection, true, setCustomState);
+		}
+		*/
+	}
+
+	//ComPtr<ID3D11Buffer> indexBuffer = m_model->meshes[0]->meshParts[0]->indexBuffer;
+	//ComPtr<ID3D11Buffer> vertexBuffer = m_model->meshes[0]->meshParts[0]->vertexBuffer;
+
+	//D3D11_BUFFER_DESC vdesc;
+	//indexBuffer->GetDesc(&vdesc);
+
+	//ZeroMemory(&vdesc, sizeof(vdesc));
+	//vdesc.ByteWidth = vsize;
+	//vdesc.Usage = D3D11_USAGE_DEFAULT;
+	//vdesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+	//vdesc.CPUAccessFlags = 0;
 
 	//for (auto& mesh : m_model->meshes)
 	//{
