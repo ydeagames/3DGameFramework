@@ -11,6 +11,32 @@ MyGame::MyGame(int width, int height) : m_width(width), m_height(height), Game(w
 {
 }
 
+// Helper class for COM exceptions
+class com_exception : public std::exception
+{
+public:
+	com_exception(HRESULT hr) noexcept : result(hr) {}
+
+	virtual const char* what() const override
+	{
+		static char s_str[64] = {};
+		sprintf_s(s_str, "Failure with HRESULT of %08X", static_cast<unsigned int>(result));
+		return s_str;
+	}
+
+private:
+	HRESULT result;
+};
+
+// Helper utility converts D3D API failures into exceptions.
+inline void ThrowIfFailed(HRESULT hr)
+{
+	if (FAILED(hr))
+	{
+		throw com_exception(hr);
+	}
+}
+
 // MyGameオブジェクトを初期する
 void MyGame::Initialize(int width, int height) 
 {
@@ -22,7 +48,7 @@ void MyGame::Initialize(int width, int height)
 	// EffectFactoryオブジェクトを生成する
 	m_effectFactory = std::make_unique<DirectX::EffectFactory>(m_directX.GetDevice().Get());
 	// モデルオブジェクトを生成する
-	m_model = DirectX::Model::CreateFromCMO(m_directX.GetDevice().Get(), L"cup.cmo", *m_effectFactory);
+	m_model = DirectX::Model::CreateFromCMO(m_directX.GetDevice().Get(), L"Tetrahedron.cmo", *m_effectFactory);
 
 	m_world = DirectX::SimpleMath::Matrix::Identity;
 
@@ -49,6 +75,88 @@ void MyGame::Initialize(int width, int height)
 
 	// デバッグカメラを生成する
 	m_debugCamera = std::make_unique<DebugCamera>(width, height);
+
+	{
+		auto device = m_directX.GetDevice().Get();
+		auto deviceContext = m_directX.GetContext().Get();
+		auto& meshes = m_model->meshes;
+
+		// Draw opaque parts
+		for (auto it = meshes.cbegin(); it != meshes.cend(); ++it)
+		{
+			auto mesh = it->get();
+			assert(mesh != nullptr);
+
+			{
+				auto& meshParts = mesh->meshParts;
+				bool alpha = false;
+
+				for (auto it = meshParts.cbegin(); it != meshParts.cend(); ++it)
+				{
+					auto part = (*it).get();
+					assert(part != nullptr);
+
+					{
+						auto iinputLayout = part->inputLayout.Get();
+						auto& vertexBuffer = part->vertexBuffer;
+						auto& vertexStride = part->vertexStride;
+						auto& indexBuffer = part->indexBuffer;
+						auto& indexFormat = part->indexFormat;
+						auto ieffect = part->effect.get();
+						auto& primitiveType = part->primitiveType;
+						auto& indexCount = part->indexCount;
+						auto& startIndex = part->startIndex;
+						auto& vertexOffset = part->vertexOffset;
+						auto vb = vertexBuffer.Get();
+
+						// --------------
+						{
+							D3D11_BUFFER_DESC vbDesc;
+							vb->GetDesc(&vbDesc);
+							vbDesc.Usage = D3D11_USAGE_STAGING;
+							vbDesc.CPUAccessFlags = D3D11_CPU_ACCESS_READ | D3D11_CPU_ACCESS_WRITE;
+							vbDesc.BindFlags = 0;
+
+							ID3D11Buffer* buf;
+							ThrowIfFailed(device->CreateBuffer(&vbDesc, nullptr, &buf));
+
+							//(4)[①GPU上の書き込み専用バッファ]を[②GPU上のCPU読み書き可能バッファ]へコピー//
+							deviceContext->CopyResource(buf, vb);
+
+							//(5)[②GPU上のCPU読み書き可能バッファ]のメモリアドレスのマップを開く//
+							D3D11_MAPPED_SUBRESOURCE mappedResource;
+							deviceContext->Map(buf, 0, D3D11_MAP_READ_WRITE, 0, &mappedResource);
+
+							//(6)[③CPU上のバッファ]を確保//
+							std::vector<VertexPositionNormalTangentColorTexture> verts(vbDesc.ByteWidth / sizeof(VertexPositionNormalTangentColorTexture));
+
+							//(7)[②GPU上のCPU読み書き可能バッファ]から[③CPU上のバッファ]へ転送//
+							CopyMemory(&verts[0], mappedResource.pData, vbDesc.ByteWidth);
+
+							{
+								for (auto& vert : verts)
+								{
+									vert.position.x *= 2.5f;
+								}
+							}
+
+							//(8)[③CPU上のバッファ]から[②GPU上のCPU読み書き可能バッファ]へ転送//
+							CopyMemory(mappedResource.pData, &verts[0], vbDesc.ByteWidth);
+
+							//(9)[②GPU上のCPU読み書き可能バッファ]のメモリアドレスのマップを閉じる//
+							deviceContext->Unmap(buf, 0);
+
+							//(10)[②GPU上のCPU読み書き可能バッファ]を[①GPU上の書き込み専用バッファ]へコピー//
+							deviceContext->CopyResource(vb, buf);
+
+							//(11)[②GPU上のCPU読み書き可能バッファ]を解放//
+							buf->Release();
+						}
+					}
+				}
+			}
+		}
+	}
 }
 
 // リソースを生成する
@@ -238,9 +346,11 @@ void MyGame::Render(const DX::StepTimer& timer)
 	// FPSを描画する
 	DrawFPS(timer);
 	// モデルを描画する
-	//m_model->Draw(m_directX.GetContext().Get(), *m_commonStates, m_world, m_view, m_projection);
+	m_model->Draw(m_directX.GetContext().Get(), *m_commonStates, m_world, m_view, m_projection);
 
+	/*
 	{
+		auto device = m_directX.GetDevice().Get();
 		auto deviceContext = m_directX.GetContext().Get();
 		auto& meshes = m_model->meshes;
 		auto& states = *m_commonStates;
@@ -298,6 +408,39 @@ void MyGame::Render(const DX::StepTimer& timer)
 						auto vb = vertexBuffer.Get();
 						UINT vbStride = vertexStride;
 						UINT vbOffset = 0;
+
+						// 取得
+						//D3D11_MAPPED_SUBRESOURCE msr;
+						//deviceContext->Map(vb, 0, D3D11_MAP_READ_WRITE, 0, &msr);
+						//deviceContext->Unmap(vb, 0);
+
+						// ----------
+
+						D3D11_BUFFER_DESC vbDesc;
+						vb->GetDesc(&vbDesc);
+						vbDesc.Usage = D3D11_USAGE_STAGING;
+						vbDesc.CPUAccessFlags = D3D11_CPU_ACCESS_READ;
+						vbDesc.BindFlags = 0;
+
+						ID3D11Buffer* buf;
+						ThrowIfFailed(device->CreateBuffer(&vbDesc, nullptr, &buf));
+
+						deviceContext->CopyResource(buf, vb);
+
+						//(5)GPU上の読み込み可能バッファのメモリアドレスのマップを開く//
+						D3D11_MAPPED_SUBRESOURCE mappedResource;
+						deviceContext->Map(buf, 0, D3D11_MAP_READ, 0, &mappedResource);
+
+						//(6)CPU上のメモリにバッファを確保//
+						std::vector<VertexPositionNormalTangentColorTexture> verts(vbDesc.ByteWidth / sizeof(VertexPositionNormalTangentColorTexture));
+
+						//(7)GPU上の読み込み可能バッファからCPU上のバッファへ転送//
+						CopyMemory(&verts[0], mappedResource.pData, vbDesc.ByteWidth);
+						deviceContext->Unmap(buf, 0);
+						buf->Release();
+
+						// -----------
+
 						deviceContext->IASetVertexBuffers(0, 1, &vb, &vbStride, &vbOffset);
 
 						// Note that if indexFormat is DXGI_FORMAT_R32_UINT, this model mesh part requires a Feature Level 9.2 or greater device
@@ -322,7 +465,6 @@ void MyGame::Render(const DX::StepTimer& timer)
 		}
 
 		// Draw alpha parts
-		/*
 		for (auto it = meshes.cbegin(); it != meshes.cend(); ++it)
 		{
 			auto mesh = it->get();
@@ -332,8 +474,8 @@ void MyGame::Render(const DX::StepTimer& timer)
 
 			mesh->Draw(deviceContext, world, view, projection, true, setCustomState);
 		}
-		*/
 	}
+	*/
 
 	//ComPtr<ID3D11Buffer> indexBuffer = m_model->meshes[0]->meshParts[0]->indexBuffer;
 	//ComPtr<ID3D11Buffer> vertexBuffer = m_model->meshes[0]->meshParts[0]->vertexBuffer;
