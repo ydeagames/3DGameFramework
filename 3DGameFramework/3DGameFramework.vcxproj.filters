@@ -52,6 +52,7 @@
     <ClInclude Include="SoftModel.h">
       <Filter>Header</Filter>
     </ClInclude>
+    <ClInclude Include="csgjs.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Game.cpp">
@@ -81,6 +82,7 @@
     <ClCompile Include="SoftModel.cpp">
       <Filter>Source</Filter>
     </ClCompile>
+    <ClCompile Include="csgjs.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="directx.ico">

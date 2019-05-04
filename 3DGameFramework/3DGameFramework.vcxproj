@@ -185,6 +185,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="csgjs.h" />
     <ClInclude Include="DebugCamera.h" />
     <ClInclude Include="GridFloor.h" />
     <ClInclude Include="pch.h" />
@@ -197,6 +198,7 @@
     <ClInclude Include="Window.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="csgjs.cpp" />
     <ClCompile Include="DebugCamera.cpp" />
     <ClCompile Include="GridFloor.cpp" />
     <ClCompile Include="pch.cpp">
