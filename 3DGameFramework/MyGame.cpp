@@ -34,13 +34,14 @@ void MyGame::Initialize(int width, int height)
 	m_debugCamera = std::make_unique<DebugCamera>(width, height);
 
 	auto smodel = SoftModelConverter::FromModel(m_directX.GetDevice().Get(), m_directX.GetContext().Get(), model);
-	smodel->meshes[0]->meshParts[0]->vertices[0].position.y += 4;
-	smodel->meshes[0]->meshParts[0]->vertices[3].position.y += 4;
-	smodel->meshes[0]->meshParts[0]->vertices[6].position.y += 4;
-	smodel->meshes[0]->meshParts[0]->vertices[9].position.y += 4;
-	smodel->meshes[0]->meshParts[0]->vertices[12].position.y += 4;
-	smodel->meshes[0]->meshParts[0]->vertices[15].position.y += 4;
-	smodel->meshes[0]->meshParts[0]->vertices[18].position.y += 4;
+	//smodel->meshes[0]->meshParts[0]->vertices[0].position.y += 4;
+	//smodel->meshes[0]->meshParts[0]->vertices[3].position.y += 4;
+	//smodel->meshes[0]->meshParts[0]->vertices[6].position.y += 4;
+	//smodel->meshes[0]->meshParts[0]->vertices[9].position.y += 4;
+	//smodel->meshes[0]->meshParts[0]->vertices[12].position.y += 4;
+	//smodel->meshes[0]->meshParts[0]->vertices[15].position.y += 4;
+	//smodel->meshes[0]->meshParts[0]->vertices[18].position.y += 4;
+	//smodel->meshes[0]->meshParts[0]->indices[18]++;
 	m_model = SoftModelConverter::ToModel(m_directX.GetDevice().Get(), smodel);
 
 	/*

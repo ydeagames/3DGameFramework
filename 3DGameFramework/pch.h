@@ -26,22 +26,33 @@
 // WinHelp is deprecated
 #define NOHELP
 
+// Windows
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 
+// COM
 #include <wrl/client.h>
 
+// DirectX
 #include <d3d11_1.h>
+#include <d3d11.h>
 #include <DirectXMath.h>
 #include <DirectXColors.h>
 
+// STL
 #include <algorithm>
 #include <exception>
 #include <memory>
 #include <stdexcept>
+#include <cstdio>
+#include <iostream>
+#include <string>
+#include <iomanip>
+#include <windows.h>
+#include <unordered_map>
+#include <unordered_set>
 
-#include <stdio.h>
-
+// DirectXTK
 #include <Keyboard.h>
 #include <Mouse.h>
 #include <SimpleMath.h>
@@ -52,14 +63,6 @@
 #include <Effects.h>
 #include <PrimitiveBatch.h>
 #include <VertexTypes.h>
-
-#include <iostream>
-#include <string>
-#include <iomanip>
-#include <algorithm>
-#include <windows.h>
-#include <d3d11.h>
-#include <memory>
 #include <SimpleMath.h>
 #include <SpriteBatch.h>
 #include <SpriteFont.h>
