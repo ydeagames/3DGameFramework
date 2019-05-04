@@ -49,6 +49,9 @@
     <ClInclude Include="DebugCamera.h">
       <Filter>Framework Header</Filter>
     </ClInclude>
+    <ClInclude Include="SoftModel.h">
+      <Filter>Header</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Game.cpp">
@@ -74,6 +77,9 @@
     </ClCompile>
     <ClCompile Include="pch.cpp">
       <Filter>Framework Source</Filter>
+    </ClCompile>
+    <ClCompile Include="SoftModel.cpp">
+      <Filter>Source</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

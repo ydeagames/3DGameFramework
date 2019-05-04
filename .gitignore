@@ -2,6 +2,9 @@
 # Created by https://www.gitignore.io/api/git,c++,visualstudio
 # Edit at https://www.gitignore.io/?templates=git,c++,visualstudio
 
+### Shader
+*.dgsl.cso
+
 ### C++ ###
 # Prerequisites
 *.d
