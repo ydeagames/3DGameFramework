@@ -35,7 +35,7 @@ namespace
 }
 
 // DirectXTKモデルから頂点データを取り出す
-std::unique_ptr<SoftModel> SoftModelConverter::FromModel(ID3D11Device* device, ID3D11DeviceContext* deviceContext, std::unique_ptr<Model>& model)
+std::unique_ptr<SoftModel> SoftModelConverter::FromModel(ID3D11Device* device, ID3D11DeviceContext* deviceContext, std::unique_ptr<Model>& model, bool optimizeBuffer)
 {
 	// 引数チェック
 	if (!device || !deviceContext || !model)
@@ -164,6 +164,7 @@ std::unique_ptr<SoftModel> SoftModelConverter::FromModel(ID3D11Device* device, I
 			}
 
 			// 頂点バッファ最適化
+			if (optimizeBuffer)
 			{
 				// 頂点
 				auto& verts = spart->vertices;

@@ -49,7 +49,7 @@ class SoftModelConverter
 {
 public:
 	// DirectXTKモデルから頂点データを取り出す
-	static std::unique_ptr<SoftModel> FromModel(ID3D11Device* device, ID3D11DeviceContext* deviceContext, std::unique_ptr<DirectX::Model>& model);
+	static std::unique_ptr<SoftModel> FromModel(ID3D11Device* device, ID3D11DeviceContext* deviceContext, std::unique_ptr<DirectX::Model>& model, bool optimizeBuffer = true);
 	// 頂点データからDirectXTKモデルを構築
 	static std::unique_ptr<DirectX::Model> ToModel(ID3D11Device* device, std::unique_ptr<SoftModel>& model);
 };
