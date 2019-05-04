@@ -186,6 +186,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="csgjs.h" />
+    <ClInclude Include="CSG.h" />
     <ClInclude Include="DebugCamera.h" />
     <ClInclude Include="GridFloor.h" />
     <ClInclude Include="pch.h" />
@@ -199,6 +200,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="csgjs.cpp" />
+    <ClCompile Include="CSG.cpp" />
     <ClCompile Include="DebugCamera.cpp" />
     <ClCompile Include="GridFloor.cpp" />
     <ClCompile Include="pch.cpp">
@@ -249,6 +251,12 @@
       <ContentOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(Filename).cmo</ContentOutput>
     </MeshContentTask>
     <MeshContentTask Include="Tetrahedron3.FBX">
+      <ContentOutput Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(Filename).cmo</ContentOutput>
+      <ContentOutput Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(Filename).cmo</ContentOutput>
+      <ContentOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(Filename).cmo</ContentOutput>
+      <ContentOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(Filename).cmo</ContentOutput>
+    </MeshContentTask>
+    <MeshContentTask Include="Tetrahedron4.FBX">
       <ContentOutput Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">%(Filename).cmo</ContentOutput>
       <ContentOutput Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">%(Filename).cmo</ContentOutput>
       <ContentOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(Filename).cmo</ContentOutput>

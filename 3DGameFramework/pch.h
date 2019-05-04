@@ -40,17 +40,20 @@
 #include <DirectXColors.h>
 
 // STL
-#include <algorithm>
 #include <exception>
 #include <memory>
 #include <stdexcept>
+
 #include <cstdio>
-#include <iostream>
 #include <string>
+#include <iostream>
 #include <iomanip>
-#include <windows.h>
+
+#include <vector>
+#include <list>
 #include <unordered_map>
 #include <unordered_set>
+#include <algorithm>
 
 // DirectXTK
 #include <Keyboard.h>

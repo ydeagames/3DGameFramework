@@ -52,7 +52,10 @@
     <ClInclude Include="SoftModel.h">
       <Filter>Header</Filter>
     </ClInclude>
-    <ClInclude Include="csgjs.h" />
+    <ClInclude Include="csgjs.h">
+      <Filter>Header</Filter>
+    </ClInclude>
+    <ClInclude Include="CSG.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Game.cpp">
@@ -82,7 +85,10 @@
     <ClCompile Include="SoftModel.cpp">
       <Filter>Source</Filter>
     </ClCompile>
-    <ClCompile Include="csgjs.cpp" />
+    <ClCompile Include="csgjs.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="CSG.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="directx.ico">
@@ -129,6 +135,9 @@
       <Filter>Assets</Filter>
     </MeshContentTask>
     <MeshContentTask Include="Tetrahedron2.FBX">
+      <Filter>Assets</Filter>
+    </MeshContentTask>
+    <MeshContentTask Include="Tetrahedron4.FBX">
       <Filter>Assets</Filter>
     </MeshContentTask>
   </ItemGroup>

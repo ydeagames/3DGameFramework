@@ -187,10 +187,10 @@ std::unique_ptr<SoftModel> SoftModelConverter::FromModel(ID3D11Device* device, I
 					return !contains;
 				}), verts.end());
 				// インデックスを再割り当て
-				std::for_each(inds.begin(), inds.end(), [&](auto& value) {
+				for (auto& value : inds) {
 					// 対応表から再割り当て
 					value = verticesIndexConvertMap[value];
-				});
+				}
 			}
 
 			// メッシュ>パーツ追加

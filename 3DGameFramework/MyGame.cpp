@@ -2,6 +2,7 @@
 
 #include "MyGame.h"
 #include "SoftModel.h"
+#include "CSG.h"
 
 using namespace Microsoft::WRL;
 using namespace DirectX;
@@ -26,7 +27,8 @@ void MyGame::Initialize(int width, int height)
 	//auto model = DirectX::Model::CreateFromCMO(m_directX.GetDevice().Get(), L"cup.cmo", *m_effectFactory);
 	//auto model = DirectX::Model::CreateFromCMO(m_directX.GetDevice().Get(), L"Tetrahedron.cmo", *m_effectFactory);
 	//auto model = DirectX::Model::CreateFromCMO(m_directX.GetDevice().Get(), L"Tetrahedron2.cmo", *m_effectFactory);
-	auto model = DirectX::Model::CreateFromCMO(m_directX.GetDevice().Get(), L"Tetrahedron3.cmo", *m_effectFactory);
+	//auto model = DirectX::Model::CreateFromCMO(m_directX.GetDevice().Get(), L"Tetrahedron3.cmo", *m_effectFactory);
+	auto model = DirectX::Model::CreateFromCMO(m_directX.GetDevice().Get(), L"Tetrahedron4.cmo", *m_effectFactory);
 
 	m_world = DirectX::SimpleMath::Matrix::Identity;
 
@@ -35,6 +37,14 @@ void MyGame::Initialize(int width, int height)
 
 	//m_model = model;
 	auto smodel = SoftModelConverter::FromModel(m_directX.GetDevice().Get(), m_directX.GetContext().Get(), model);
+
+	auto& m1 = smodel->meshes[0]->meshParts[0];
+	auto& m2 = smodel->meshes[1]->meshParts[0];
+	auto m3 = CSG::Difference(CSG::CSGModel{ m1->vertices, m1->indices }, CSG::CSGModel{ m2->vertices, m2->indices });
+	smodel->meshes.pop_back();
+	m1->vertices = m3.vertices;
+	m1->indices = m3.indices;
+
 	m_model = SoftModelConverter::ToModel(m_directX.GetDevice().Get(), smodel);
 }
 

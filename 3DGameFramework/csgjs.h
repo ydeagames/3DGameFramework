@@ -17,31 +17,45 @@
 
 #include <vector>
 
-struct csgjs_vector
+namespace csgjs
 {
-	float x, y, z;
+	struct csgjs_vector
+	{
+		float x, y, z;
 
-	csgjs_vector() : x(0.0f), y(0.0f), z(0.0f) {}
-	explicit csgjs_vector(float x, float y, float z) : x(x), y(y), z(z) {}
-};
+		csgjs_vector() : x(0.0f), y(0.0f), z(0.0f) {}
+		explicit csgjs_vector(float x, float y, float z) : x(x), y(y), z(z) {}
+	};
 
-struct csgjs_vertex
-{
-	csgjs_vector pos;
-	csgjs_vector normal;
-	csgjs_vector uv;
-};
+	struct csgjs_vertex
+	{
+		csgjs_vector pos;
+		csgjs_vector normal;
+		csgjs_vector uv;
+		const void* binding;
 
-struct csgjs_model
-{
-	std::vector<csgjs_vertex> vertices;
-	std::vector<int> indices;
-};
+		csgjs_vertex(const csgjs_vector& pos, const csgjs_vector& normal, const csgjs_vector& uv, const void* binding)
+			: pos(pos)
+			, normal(normal)
+			, uv(uv)
+			, binding(binding) {}
+		csgjs_vertex(const csgjs_vector& pos, const csgjs_vector& normal, const csgjs_vector& uv)
+			: csgjs_vertex(pos, normal, uv, nullptr) {}
+		csgjs_vertex()
+			: csgjs_vertex({}, {}, {}, nullptr) {}
+	};
 
-// public interface - not super efficient, if you use multiple CSG operations you should
-// use BSP trees and convert them into model only once. Another optimization trick is
-// replacing csgjs_model with your own class.
+	struct csgjs_model
+	{
+		std::vector<csgjs_vertex> vertices;
+		std::vector<int> indices;
+	};
 
-csgjs_model csgjs_union(const csgjs_model & a, const csgjs_model & b);
-csgjs_model csgjs_intersection(const csgjs_model & a, const csgjs_model & b);
-csgjs_model csgjs_difference(const csgjs_model & a, const csgjs_model & b);
+	// public interface - not super efficient, if you use multiple CSG operations you should
+	// use BSP trees and convert them into model only once. Another optimization trick is
+	// replacing csgjs_model with your own class.
+
+	csgjs_model csgjs_union(const csgjs_model & a, const csgjs_model & b);
+	csgjs_model csgjs_intersection(const csgjs_model & a, const csgjs_model & b);
+	csgjs_model csgjs_difference(const csgjs_model & a, const csgjs_model & b);
+}
