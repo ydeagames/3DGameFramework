@@ -23,16 +23,17 @@ void MyGame::Initialize(int width, int height)
 	// EffectFactoryオブジェクトを生成する
 	m_effectFactory = std::make_unique<DirectX::EffectFactory>(m_directX.GetDevice().Get());
 	// モデルオブジェクトを生成する
-	auto model = DirectX::Model::CreateFromCMO(m_directX.GetDevice().Get(), L"cup.cmo", *m_effectFactory);
-	//m_model = DirectX::Model::CreateFromCMO(m_directX.GetDevice().Get(), L"Tetrahedron.cmo", *m_effectFactory);
-	//m_model = DirectX::Model::CreateFromCMO(m_directX.GetDevice().Get(), L"Tetrahedron2.cmo", *m_effectFactory);
-	//m_model = DirectX::Model::CreateFromCMO(m_directX.GetDevice().Get(), L"Tetrahedron3.cmo", *m_effectFactory);
+	//auto model = DirectX::Model::CreateFromCMO(m_directX.GetDevice().Get(), L"cup.cmo", *m_effectFactory);
+	//auto model = DirectX::Model::CreateFromCMO(m_directX.GetDevice().Get(), L"Tetrahedron.cmo", *m_effectFactory);
+	//auto model = DirectX::Model::CreateFromCMO(m_directX.GetDevice().Get(), L"Tetrahedron2.cmo", *m_effectFactory);
+	auto model = DirectX::Model::CreateFromCMO(m_directX.GetDevice().Get(), L"Tetrahedron3.cmo", *m_effectFactory);
 
 	m_world = DirectX::SimpleMath::Matrix::Identity;
 
 	// デバッグカメラを生成する
 	m_debugCamera = std::make_unique<DebugCamera>(width, height);
 
+	//m_model = model;
 	auto smodel = SoftModelConverter::FromModel(m_directX.GetDevice().Get(), m_directX.GetContext().Get(), model);
 	m_model = SoftModelConverter::ToModel(m_directX.GetDevice().Get(), smodel);
 }
