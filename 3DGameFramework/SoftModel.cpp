@@ -351,3 +351,81 @@ void SoftModelConverter::ConvertPolygonFaces(std::unique_ptr<SoftModel>& smodel,
 		}
 	}
 }
+
+// メッシュのパーツを一体化
+void SoftModelConverter::MergeMeshParts(std::unique_ptr<SoftModel>& smodel)
+{
+	// モデル>メッシュ処理
+	for (auto& smesh : smodel->meshes)
+	{
+		auto& sparts = smesh->meshParts;
+		if (sparts.size() > 0)
+		{
+			// 集約頂点
+			std::vector<SoftModelMeshPart::Vertex> verts;
+			std::vector<SoftModelMeshPart::Index> inds;
+			size_t startIndex = 0;
+
+			// メッシュ>パーツ処理
+			for (auto& spart : sparts)
+			{
+				verts.insert(verts.end(), spart->vertices.begin(), spart->vertices.end());
+				for (auto& index : spart->indices)
+					inds.push_back(index + startIndex);
+				startIndex += spart->vertices.size();
+			}
+
+			// 2番目以降消去
+			sparts.erase(sparts.begin() + 1, sparts.end());
+			// 頂点更新
+			sparts[0]->vertices = std::move(verts);
+			sparts[0]->indices = std::move(inds);
+		}
+	}
+}
+
+// メッシュを一体化
+void SoftModelConverter::MergeMesh(std::unique_ptr<SoftModel>& smodel)
+{
+	// 最低一個のメッシュが必要
+	auto& smeshs = smodel->meshes;
+	if (smeshs.size() <= 0)
+		return;
+
+	// 最低一個のパーツが必要
+	auto& smesh0parts = smeshs[0]->meshParts;
+	if (smesh0parts.size() <= 0)
+		return;
+
+	// マージの必要なし
+	if (smeshs.size() == 1 && smesh0parts.size() == 1)
+		return;
+
+	// 集約頂点
+	std::vector<SoftModelMeshPart::Vertex> verts;
+	std::vector<SoftModelMeshPart::Index> inds;
+	SoftModelMeshPart::Index startIndex = 0;
+
+	// モデル>メッシュ処理
+	for (auto& smesh : smeshs)
+	{
+		auto& sparts = smesh->meshParts;
+
+		// メッシュ>パーツ処理
+		for (auto& spart : sparts)
+		{
+			verts.insert(verts.end(), spart->vertices.begin(), spart->vertices.end());
+			for (auto& index : spart->indices)
+				inds.push_back(index + startIndex);
+			startIndex += spart->vertices.size();
+		}
+
+	}
+
+	// 2番目以降消去
+	smeshs.erase(smeshs.begin() + 1, smeshs.end());
+	smesh0parts.erase(smesh0parts.begin() + 1, smesh0parts.end());
+	// 頂点更新
+	smesh0parts[0]->vertices = std::move(verts);
+	smesh0parts[0]->indices = std::move(inds);
+}

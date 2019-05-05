@@ -6,6 +6,7 @@ namespace CSG
 	{
 		std::vector<DirectX::VertexPositionNormalTangentColorTextureSkinning> vertices;
 		std::vector<uint16_t> indices;
+		DirectX::SimpleMath::Matrix transform;
 	};
 
 	CSGModel Union(const CSGModel& a, const CSGModel& b);

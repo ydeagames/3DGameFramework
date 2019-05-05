@@ -90,6 +90,14 @@ namespace CSG
 				return model;
 			}
 		}
+
+		CSGModel Transform(const CSGModel& model, const Matrix& transform)
+		{
+			//CSGModel model = model;
+			//for (auto& vertex : cmodel.vertices)
+			//	model.vertices.push_back(C2D_Vertex(vertex));
+			return model;
+		}
 	}
 
 	CSGModel Union(const CSGModel& a, const CSGModel& b)

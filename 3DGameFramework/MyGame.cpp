@@ -33,25 +33,35 @@ void MyGame::Initialize(int width, int height)
 
 	// モデルオブジェクトを生成する
 	std::cout << "Loading CMO" << std::endl;
-	//auto model0 = DirectX::Model::CreateFromCMO(m_directX.GetDevice().Get(), L"cup.cmo", *m_effectFactory);
-	//auto model = DirectX::Model::CreateFromCMO(m_directX.GetDevice().Get(), L"Tetrahedron.cmo", *m_effectFactory);
+	//auto model = DirectX::Model::CreateFromCMO(m_directX.GetDevice().Get(), L"cup.cmo", *m_effectFactory);
+	//auto model0 = DirectX::Model::CreateFromCMO(m_directX.GetDevice().Get(), L"Tetrahedron.cmo", *m_effectFactory);
 	//auto model = DirectX::Model::CreateFromCMO(m_directX.GetDevice().Get(), L"Tetrahedron2.cmo", *m_effectFactory);
 	//auto model = DirectX::Model::CreateFromCMO(m_directX.GetDevice().Get(), L"Tetrahedron3.cmo", *m_effectFactory);
 	auto model = DirectX::Model::CreateFromCMO(m_directX.GetDevice().Get(), L"Tetrahedron4.cmo", *m_effectFactory);
 
 	std::cout << "Converting to SoftModel" << std::endl;
 	//m_model = std::move(model);
-	//auto smodel0 = SoftModelConverter::FromModel(m_directX.GetDevice().Get(), m_directX.GetContext().Get(), model0);
 	auto smodel = SoftModelConverter::FromModel(m_directX.GetDevice().Get(), m_directX.GetContext().Get(), model);
 	SoftModelConverter::RemoveUnreferencedVertices(smodel);
 	SoftModelConverter::ConvertPolygonFaces(smodel, false);
+	//SoftModelConverter::MergeMesh(smodel);
+	//auto smodel0 = SoftModelConverter::FromModel(m_directX.GetDevice().Get(), m_directX.GetContext().Get(), model0);
+	//SoftModelConverter::RemoveUnreferencedVertices(smodel0);
+	//SoftModelConverter::ConvertPolygonFaces(smodel0, false);
+	//SoftModelConverter::MergeMesh(smodel0);
 
 	auto& m1 = smodel->meshes[0]->meshParts[0];
 	auto& m2 = smodel->meshes[1]->meshParts[0];
-	auto c1 = CSG::Intersection(CSG::CSGModel{ m1->vertices, m1->indices }, CSG::CSGModel{ m2->vertices, m2->indices });
+	auto c1 = CSG::Difference(CSG::CSGModel{ m2->vertices, m2->indices }, CSG::CSGModel{ m1->vertices, m1->indices });
 	m1->vertices = c1.vertices;
 	m1->indices = c1.indices;
 	smodel->meshes.pop_back();
+
+	//auto& m1 = smodel->meshes[0]->meshParts[0];
+	//auto& m2 = smodel0->meshes[0]->meshParts[0];
+	//auto c1 = CSG::Intersection(CSG::CSGModel{ m1->vertices, m1->indices }, CSG::CSGModel{ m2->vertices, m2->indices });
+	//m1->vertices = c1.vertices;
+	//m1->indices = c1.indices;
 
 	/*
 	{
