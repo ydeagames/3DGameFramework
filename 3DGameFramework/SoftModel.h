@@ -49,7 +49,11 @@ class SoftModelConverter
 {
 public:
 	// DirectXTKモデルから頂点データを取り出す
-	static std::unique_ptr<SoftModel> FromModel(ID3D11Device* device, ID3D11DeviceContext* deviceContext, std::unique_ptr<DirectX::Model>& model, bool optimizeBuffer = true);
+	static std::unique_ptr<SoftModel> FromModel(ID3D11Device* device, ID3D11DeviceContext* deviceContext, std::unique_ptr<DirectX::Model>& model);
 	// 頂点データからDirectXTKモデルを構築
-	static std::unique_ptr<DirectX::Model> ToModel(ID3D11Device* device, std::unique_ptr<SoftModel>& model);
+	static std::unique_ptr<DirectX::Model> ToModel(ID3D11Device* device, std::unique_ptr<SoftModel>& smodel);
+	// インデックスから参照がない頂点を削除
+	static void RemoveUnreferencedVertices(std::unique_ptr<SoftModel>& smodel);
+	// ポリゴンの面の順番(時計回り/反時計回り)を変換する
+	static void ConvertPolygonFaces(std::unique_ptr<SoftModel>& smodel, bool ccw);
 };

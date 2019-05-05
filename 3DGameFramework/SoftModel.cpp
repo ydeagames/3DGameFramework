@@ -35,7 +35,7 @@ namespace
 }
 
 // DirectXTKモデルから頂点データを取り出す
-std::unique_ptr<SoftModel> SoftModelConverter::FromModel(ID3D11Device* device, ID3D11DeviceContext* deviceContext, std::unique_ptr<Model>& model, bool optimizeBuffer)
+std::unique_ptr<SoftModel> SoftModelConverter::FromModel(ID3D11Device* device, ID3D11DeviceContext* deviceContext, std::unique_ptr<Model>& model)
 {
 	// 引数チェック
 	if (!device || !deviceContext || !model)
@@ -48,10 +48,9 @@ std::unique_ptr<SoftModel> SoftModelConverter::FromModel(ID3D11Device* device, I
 	smodel->name = model->name;
 
 	// モデル>メッシュ処理
-	for (auto it = model->meshes.cbegin(); it != model->meshes.cend(); ++it)
+	for (auto& mesh : model->meshes)
 	{
 		// メッシュ
-		auto mesh = it->get();
 		assert(mesh != nullptr);
 		auto smesh = std::make_shared<SoftModelMesh>();
 
@@ -63,10 +62,9 @@ std::unique_ptr<SoftModel> SoftModelConverter::FromModel(ID3D11Device* device, I
 		smesh->pmalpha = mesh->pmalpha;
 
 		// メッシュ>パーツ処理
-		for (auto it = mesh->meshParts.cbegin(); it != mesh->meshParts.cend(); ++it)
+		for (auto& part : mesh->meshParts)
 		{
 			// パーツ
-			auto& part = *it;
 			assert(part != nullptr);
 			auto spart = std::make_unique<SoftModelMeshPart>();
 
@@ -163,36 +161,6 @@ std::unique_ptr<SoftModel> SoftModelConverter::FromModel(ID3D11Device* device, I
 				spart->vertices = std::move(verts);
 			}
 
-			// 頂点バッファ最適化
-			if (optimizeBuffer)
-			{
-				// 頂点
-				auto& verts = spart->vertices;
-				auto& inds = spart->indices;
-				// 使われている頂点のインデックス
-				std::unordered_set<uint16_t> usedVerticesIndex(inds.begin(), inds.end());
-				// 再配置前と再配置後のインデックス対応表 (要素番号: 再配置前, 値: 再配置後)
-				std::vector<uint16_t> verticesIndexConvertMap(verts.size(), -1);
-				// 次の再配置後のインデックス
-				uint16_t indsCount = 0;
-				// 使われていない頂点を削除
-				verts.erase(std::remove_if(verts.begin(), verts.end(), [&](auto& value) {
-					// 再配置前のインデックス
-					uint16_t i = static_cast<uint16_t>(&value - &*spart->vertices.begin());
-					// 使われているかどうか
-					bool contains = usedVerticesIndex.find(i) != usedVerticesIndex.end();
-					// 使われていたらインデックスを割り当て、1増やす
-					if (contains) verticesIndexConvertMap[i] = indsCount++;
-					// 使われていなかったら消す
-					return !contains;
-				}), verts.end());
-				// インデックスを再割り当て
-				for (auto& value : inds) {
-					// 対応表から再割り当て
-					value = verticesIndexConvertMap[value];
-				}
-			}
-
 			// メッシュ>パーツ追加
 			smesh->meshParts.emplace_back(std::move(spart));
 		}
@@ -218,10 +186,9 @@ std::unique_ptr<Model> SoftModelConverter::ToModel(ID3D11Device* device, std::un
 	model->name = smodel->name;
 
 	// モデル>メッシュ処理
-	for (auto it = smodel->meshes.cbegin(); it != smodel->meshes.cend(); ++it)
+	for (auto& smesh : smodel->meshes)
 	{
 		// メッシュ
-		auto smesh = it->get();
 		assert(smesh != nullptr);
 		auto mesh = std::make_shared<ModelMesh>();
 
@@ -233,10 +200,9 @@ std::unique_ptr<Model> SoftModelConverter::ToModel(ID3D11Device* device, std::un
 		mesh->pmalpha = smesh->pmalpha;
 
 		// メッシュ>パーツ処理
-		for (auto it = smesh->meshParts.cbegin(); it != smesh->meshParts.cend(); ++it)
+		for (auto& spart : smesh->meshParts)
 		{
 			// パーツ
-			auto& spart = *it;
 			assert(spart != nullptr);
 			auto part = std::make_unique<ModelMeshPart>();
 
@@ -321,4 +287,67 @@ std::unique_ptr<Model> SoftModelConverter::ToModel(ID3D11Device* device, std::un
 	}
 
 	return model;
+}
+
+// インデックスから参照がない頂点を削除
+void SoftModelConverter::RemoveUnreferencedVertices(std::unique_ptr<SoftModel>& smodel)
+{
+	// モデル>メッシュ処理
+	for (auto& smesh : smodel->meshes)
+	{
+		// メッシュ>パーツ処理
+		for (auto& spart : smesh->meshParts)
+		{
+			// 頂点
+			auto& verts = spart->vertices;
+			auto& inds = spart->indices;
+			// 使われている頂点のインデックス
+			std::unordered_set<uint16_t> usedVerticesIndex(inds.begin(), inds.end());
+			// 再配置前と再配置後のインデックス対応表 (要素番号: 再配置前, 値: 再配置後)
+			std::vector<uint16_t> verticesIndexConvertMap(verts.size(), -1);
+			// 次の再配置後のインデックス
+			uint16_t indsCount = 0;
+			// 使われていない頂点を削除
+			verts.erase(std::remove_if(verts.begin(), verts.end(), [&](auto& value) {
+				// 再配置前のインデックス
+				uint16_t i = static_cast<uint16_t>(&value - &*spart->vertices.begin());
+				// 使われているかどうか
+				bool contains = usedVerticesIndex.find(i) != usedVerticesIndex.end();
+				// 使われていたらインデックスを割り当て、1増やす
+				if (contains) verticesIndexConvertMap[i] = indsCount++;
+				// 使われていなかったら消す
+				return !contains;
+			}), verts.end());
+			// インデックスを再割り当て
+			for (auto& value : inds) {
+				// 対応表から再割り当て
+				value = verticesIndexConvertMap[value];
+			}
+		}
+	}
+}
+
+// ポリゴンの面の順番(時計回り/反時計回り)を変換する
+void SoftModelConverter::ConvertPolygonFaces(std::unique_ptr<SoftModel>& smodel, bool ccw)
+{
+	// モデル>メッシュ処理
+	for (auto& smesh : smodel->meshes)
+	{
+		// ポリゴンの面の順番が違う場合のみ変換処理
+		if (smesh->ccw != ccw)
+		{
+			// メッシュ>パーツ処理
+			for (auto& spart : smesh->meshParts)
+			{
+				// 頂点
+				auto& inds = spart->indices;
+				size_t size = inds.size();
+				// 三角形ABCの点Bと点Cを入れ替える
+				for (size_t i = 0; i < size; i += 3)
+					std::swap(inds[i + 1], inds[i + 2]);
+			}
+			// 設定を変更
+			smesh->ccw = ccw;
+		}
+	}
 }

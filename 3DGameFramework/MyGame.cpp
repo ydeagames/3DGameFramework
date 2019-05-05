@@ -23,27 +23,56 @@ void MyGame::Initialize(int width, int height)
 	m_commonStates = std::make_unique<DirectX::CommonStates>(m_directX.GetDevice().Get());
 	// EffectFactoryオブジェクトを生成する
 	m_effectFactory = std::make_unique<DirectX::EffectFactory>(m_directX.GetDevice().Get());
-	// モデルオブジェクトを生成する
-	//auto model = DirectX::Model::CreateFromCMO(m_directX.GetDevice().Get(), L"cup.cmo", *m_effectFactory);
-	//auto model = DirectX::Model::CreateFromCMO(m_directX.GetDevice().Get(), L"Tetrahedron.cmo", *m_effectFactory);
-	//auto model = DirectX::Model::CreateFromCMO(m_directX.GetDevice().Get(), L"Tetrahedron2.cmo", *m_effectFactory);
-	//auto model = DirectX::Model::CreateFromCMO(m_directX.GetDevice().Get(), L"Tetrahedron3.cmo", *m_effectFactory);
-	auto model = DirectX::Model::CreateFromCMO(m_directX.GetDevice().Get(), L"Tetrahedron4.cmo", *m_effectFactory);
 
 	m_world = DirectX::SimpleMath::Matrix::Identity;
 
 	// デバッグカメラを生成する
 	m_debugCamera = std::make_unique<DebugCamera>(width, height);
 
-	//m_model = model;
+
+
+	// モデルオブジェクトを生成する
+	std::cout << "Loading CMO" << std::endl;
+	//auto model0 = DirectX::Model::CreateFromCMO(m_directX.GetDevice().Get(), L"cup.cmo", *m_effectFactory);
+	//auto model = DirectX::Model::CreateFromCMO(m_directX.GetDevice().Get(), L"Tetrahedron.cmo", *m_effectFactory);
+	//auto model = DirectX::Model::CreateFromCMO(m_directX.GetDevice().Get(), L"Tetrahedron2.cmo", *m_effectFactory);
+	//auto model = DirectX::Model::CreateFromCMO(m_directX.GetDevice().Get(), L"Tetrahedron3.cmo", *m_effectFactory);
+	auto model = DirectX::Model::CreateFromCMO(m_directX.GetDevice().Get(), L"Tetrahedron4.cmo", *m_effectFactory);
+
+	std::cout << "Converting to SoftModel" << std::endl;
+	//m_model = std::move(model);
+	//auto smodel0 = SoftModelConverter::FromModel(m_directX.GetDevice().Get(), m_directX.GetContext().Get(), model0);
 	auto smodel = SoftModelConverter::FromModel(m_directX.GetDevice().Get(), m_directX.GetContext().Get(), model);
+	SoftModelConverter::RemoveUnreferencedVertices(smodel);
+	SoftModelConverter::ConvertPolygonFaces(smodel, false);
 
 	auto& m1 = smodel->meshes[0]->meshParts[0];
 	auto& m2 = smodel->meshes[1]->meshParts[0];
-	auto m3 = CSG::Difference(CSG::CSGModel{ m1->vertices, m1->indices }, CSG::CSGModel{ m2->vertices, m2->indices });
+	auto c1 = CSG::Intersection(CSG::CSGModel{ m1->vertices, m1->indices }, CSG::CSGModel{ m2->vertices, m2->indices });
+	m1->vertices = c1.vertices;
+	m1->indices = c1.indices;
 	smodel->meshes.pop_back();
-	m1->vertices = m3.vertices;
-	m1->indices = m3.indices;
+
+	/*
+	{
+		auto& m1 = smodel0->meshes[0]->meshParts[0];
+		auto& m2 = smodel0->meshes[0]->meshParts[1];
+		auto& m3 = smodel0->meshes[0]->meshParts[2];
+		auto& m = smodel->meshes[0]->meshParts[0];
+		std::cout << "Generating CSG Mesh 1/3" << std::endl;
+		auto c1 = CSG::Difference(CSG::CSGModel{ m1->vertices, m1->indices }, CSG::CSGModel{ m->vertices, m->indices });
+		std::cout << "Generating CSG Mesh 2/3" << std::endl;
+		auto c2 = CSG::Difference(CSG::CSGModel{ m2->vertices, m2->indices }, CSG::CSGModel{ m->vertices, m->indices });
+		std::cout << "Generating CSG Mesh 3/3" << std::endl;
+		auto c3 = CSG::Difference(CSG::CSGModel{ m3->vertices, m3->indices }, CSG::CSGModel{ m->vertices, m->indices });
+		m1->vertices = c1.vertices;
+		m1->indices = c1.indices;
+		m2->vertices = c2.vertices;
+		m2->indices = c2.indices;
+		m3->vertices = c3.vertices;
+		m3->indices = c3.indices;
+	}
+	/**/
 
 	m_model = SoftModelConverter::ToModel(m_directX.GetDevice().Get(), smodel);
 }

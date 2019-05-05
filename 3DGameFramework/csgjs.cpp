@@ -500,7 +500,6 @@ namespace csgjs
 	}
 
 	// Public interface implementation
-
 	inline static std::vector<csgjs_polygon> csgjs_modelToPolygons(const csgjs_model & model)
 	{
 		std::vector<csgjs_polygon> list;
